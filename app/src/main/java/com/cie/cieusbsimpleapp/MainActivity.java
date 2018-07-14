@@ -1,7 +1,6 @@
-package com.cie.ciesimpleappv2;
+package com.cie.cieusbsimpleapp;
 
 import android.app.ProgressDialog;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Layout;
@@ -22,28 +20,34 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.cie.btp.Barcode;
-import com.cie.btp.CieBluetoothPrinter;
-import com.cie.btp.DebugLog;
-import com.cie.btp.FontStyle;
-import com.cie.btp.FontType;
-import com.cie.btp.PrintColumnParam;
-import com.cie.btp.PrinterWidth;
+import com.cie.usb.Barcode;
+import com.cie.usb.CieUsbPrinter;
+import com.cie.usb.DebugLog;
+import com.cie.usb.FontStyle;
+import com.cie.usb.FontType;
+import com.cie.usb.PrintColumnParam;
+import com.cie.usb.PrinterWidth;
 
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_CONN_DEVICE_NAME;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_CONN_STATE_CONNECTED;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_CONN_STATE_CONNECTING;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_CONN_STATE_LISTEN;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_CONN_STATE_NONE;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_MESSAGES;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_MSG;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_NAME;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_NOTIFICATION_ERROR_MSG;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_NOTIFICATION_MSG;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_NOT_CONNECTED;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_NOT_FOUND;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_SAVED;
-import static com.cie.btp.BtpConsts.RECEIPT_PRINTER_STATUS;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_ATTACHED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_CONN_DEVICE_NAME;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_CONN_STATE_CONNECTED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_CONN_STATE_CONNECTING;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_CONN_STATE_LISTEN;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_CONN_STATE_NONE;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_DETATCHED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_MESSAGES;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_MSG;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_NAME;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_NOTIFICATION_ERROR_MSG;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_NOTIFICATION_MSG;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_NOT_CONNECTED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_NOT_FOUND;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_PERMISSION_GRANTED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_PERMISSION_REJECTED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_REQUESTING_PERMISSION;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_SAVED;
+import static com.cie.usb.UsbpConstants.RECEIPT_PRINTER_STATUS;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int BARCODE_HEIGHT = 100;
     private static final int QRCODE_WIDTH = 100;
 
-    public CieBluetoothPrinter mPrinter = CieBluetoothPrinter.INSTANCE;
+    public CieUsbPrinter mPrinter = CieUsbPrinter.INSTANCE;
     private int imageAlignment = 1;
 
     @Override
@@ -68,13 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         pdWorkInProgress = new ProgressDialog(this);
         pdWorkInProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-
-        BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mAdapter == null) {
-            Toast.makeText(this, R.string.bt_not_supported, Toast.LENGTH_SHORT).show();
-            finish();
-        }
-
+        
         try {
             mPrinter.initService(MainActivity.this);
         }
@@ -82,28 +80,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        final Button btnSelectPrinter = (Button) findViewById(R.id.btnSelectPrinter);
-        btnSelectPrinter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPrinter.disconnectFromPrinter();
-                mPrinter.selectPrinter(MainActivity.this);
-            }
-        });
-
-        final Button btnClearPrinter = (Button) findViewById(R.id.btnClearPrinter);
-        btnClearPrinter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPrinter.clearPreferredPrinter();
-            }
-        });
-
         btnPrint = (Button) findViewById(R.id.btnPrint);
         btnPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPrinter.connectToPrinter();
+                new AsyncPrint().execute();
             }
         });
     }
@@ -130,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         DebugLog.logTrace("onDestroy");
-        mPrinter.onActivityDestroy();
         super.onDestroy();
     }
 
@@ -153,12 +133,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        mPrinter.onActivityRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
     private final BroadcastReceiver ReceiptPrinterMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -166,6 +140,21 @@ public class MainActivity extends AppCompatActivity {
             Bundle b = intent.getExtras();
 
             switch (b.getInt(RECEIPT_PRINTER_STATUS)) {
+                case RECEIPT_PRINTER_ATTACHED:
+                    tvStatus.setText("Printer Attached");
+                    break;
+                case RECEIPT_PRINTER_DETATCHED:
+                    tvStatus.setText("Printer Detached");
+                    break;
+                case RECEIPT_PRINTER_REQUESTING_PERMISSION:
+                    tvStatus.setText("Requesting Printer permission");
+                    break;
+                case RECEIPT_PRINTER_PERMISSION_REJECTED:
+                    tvStatus.setText("Printer Permission Denied");
+                    break;
+                case RECEIPT_PRINTER_PERMISSION_GRANTED:
+                    tvStatus.setText("Printer Permission Granted; Ready");
+                    break;
                 case RECEIPT_PRINTER_CONN_STATE_NONE:
                     tvStatus.setText(R.string.printer_not_conn);
                     break;
@@ -177,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case RECEIPT_PRINTER_CONN_STATE_CONNECTED:
                     tvStatus.setText(R.string.printer_connected);
-                    new AsyncPrint().execute();
+
                     break;
                 case RECEIPT_PRINTER_CONN_DEVICE_NAME:
                     savePrinterMac(b.getString(RECEIPT_PRINTER_NAME));
@@ -318,7 +307,6 @@ public class MainActivity extends AppCompatActivity {
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            mPrinter.disconnectFromPrinter();
             btnPrint.setEnabled(true);
             pdWorkInProgress.cancel();
         }
@@ -334,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_about) {
-            Toast.makeText(this,"CIE Simple text Print App V2",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"CIE USB Simple App",Toast.LENGTH_LONG).show();
             return true;
         }
         return super.onOptionsItemSelected(item);

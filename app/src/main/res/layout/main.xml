@@ -6,30 +6,6 @@
     android:orientation="vertical"
     >
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnSelectPrinter"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:layout_weight="1"
-            android:padding="10dp"
-            android:text="SELECT PRINTER"/>
-
-        <Button
-            android:id="@+id/btnClearPrinter"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:layout_weight="1"
-            android:padding="10dp"
-            android:text="CLEAR PRINTER"/>
-    </TableRow>
-
     <Button
         android:id="@+id/btnPrint"
         android:layout_width="match_parent"
