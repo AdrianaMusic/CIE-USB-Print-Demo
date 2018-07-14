@@ -1,6 +1,6 @@
-# CIE-Simple-App-V2
-CIE Simple App V2
-Sample Android Application using CIE Android SDK V2 to connect to CIE Bluetooth Thermal Printer.
+# CIE USB Simple App Print Demo
+CIE USB Simple App Print Demo
+Sample Android Application using CIE Android USB SDK to connect to CIE USB Thermal Printer.
 
 This application shows how to print
 * Image
