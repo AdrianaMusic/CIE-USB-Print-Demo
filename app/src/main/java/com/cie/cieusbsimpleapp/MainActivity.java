@@ -90,36 +90,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
-        DebugLog.logTrace();
-        mPrinter.onActivityResume();
-        super.onResume();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
-    protected void onPause() {
-        DebugLog.logTrace();
-        mPrinter.onActivityPause();
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        DebugLog.logTrace("onDestroy");
-        super.onDestroy();
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(RECEIPT_PRINTER_MESSAGES);
         LocalBroadcastManager.getInstance(this).registerReceiver(ReceiptPrinterMessageReceiver, intentFilter);
+        mPrinter.onActivityStart();
     }
 
     @Override
@@ -131,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
         catch (Exception e) {
             DebugLog.logException(e);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        DebugLog.logTrace("onDestroy");
+        super.onDestroy();
+        mPrinter.onActivityDestroy();
     }
 
     private final BroadcastReceiver ReceiptPrinterMessageReceiver = new BroadcastReceiver() {
