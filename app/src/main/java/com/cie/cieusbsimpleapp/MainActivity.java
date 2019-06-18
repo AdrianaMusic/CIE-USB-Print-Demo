@@ -17,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView tvStatus;
     private Button btnPrint;
+    private CheckBox cbFindBlackMark;
+    private boolean bFindBlackMark;
 
     ProgressDialog pdWorkInProgress;
 
@@ -68,7 +71,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        tvStatus = (TextView) findViewById(R.id.status_msg);
+        tvStatus = findViewById(R.id.status_msg);
+        cbFindBlackMark = findViewById(R.id.cbFindBlackMark);
+        btnPrint = findViewById(R.id.btnPrint);
 
         pdWorkInProgress = new ProgressDialog(this);
         pdWorkInProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -80,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        btnPrint = (Button) findViewById(R.id.btnPrint);
         btnPrint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -189,7 +193,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            bFindBlackMark = cbFindBlackMark.isChecked();
             btnPrint.setEnabled(false);
+            cbFindBlackMark.setEnabled(false);
 
             pdWorkInProgress.setIndeterminate(true);
             pdWorkInProgress.setMessage("Printing ...");
@@ -273,9 +279,13 @@ public class MainActivity extends AppCompatActivity {
             String[] sCol3 = {"₹1.00","₹20.00","₹300.00","₹4,000.00","₹50,000.89"};
             PrintColumnParam pcp3rdCol = new PrintColumnParam(sCol3,33,Layout.Alignment.ALIGN_OPPOSITE,22);
             mPrinter.PrintTable(pcp1stCol,pcp2ndCol,pcp3rdCol);
-            //Clearance for Paper tear
-            mPrinter.printLineFeed();
-            mPrinter.printLineFeed();
+            if (bFindBlackMark) {
+                mPrinter.findBlackMarkAndMove(20);
+            } else {
+                //Clearance for Paper tear
+                mPrinter.printLineFeed();
+                mPrinter.printLineFeed();
+            }
 
             return null;
         }
@@ -291,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             btnPrint.setEnabled(true);
+            cbFindBlackMark.setEnabled(true);
             pdWorkInProgress.cancel();
         }
     }
